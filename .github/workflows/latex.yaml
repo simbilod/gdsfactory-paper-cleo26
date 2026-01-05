@@ -13,10 +13,10 @@ jobs:
           root_file: gdsfactory.tex
           args: -f -shell-escape -interaction=nonstopmode
           post_compile: "latexmk -c"
-      - uses: actions/upload-artifact@v3
+      - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: PDF
+          name: PDF-LaTeX
           path: gdsfactory.pdf
       - uses: peaceiris/actions-gh-pages@v3
         if: ${{ github.ref == 'refs/heads/main' }}
@@ -24,6 +24,25 @@ jobs:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: ./
           exclude_assets: .gitignore
+
+  build_markdown:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install pandoc
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y pandoc texlive-xetex
+      - name: Convert Markdown to PDF
+        run: |
+          pandoc gdsfactory.md -o gdsfactory-md.pdf \
+            --pdf-engine=xelatex \
+            --variable geometry:margin=1in \
+            --variable fontsize=11pt
+      - uses: actions/upload-artifact@v4
+        with:
+          name: PDF-Markdown
+          path: gdsfactory-md.pdf
 
   chktex_lint:
     runs-on: ubuntu-latest
